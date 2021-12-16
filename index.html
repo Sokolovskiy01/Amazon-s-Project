@@ -2,6 +2,17 @@
 <html>
     <head>
         <link rel="stylesheet" href="css/main.css">
+        <script type="text/javascript">
+            function createField(width, height) {
+                let gameTable = document.getElementById("gameTable");
+                let tableBlock = document.createElement("div");
+                for (let i = 0; i < height; i++) {
+                    for (let j = 0; j < width; i++) {
+                        
+                    }
+                }
+            }
+        </script>
     </head>
     <body>
         <div class="main-game-page">
@@ -17,7 +28,32 @@
 
                     </div>
                     <div class="game-canvas-container">
-                        <canvas></canvas>
+                        <div class="game-table" id="gameTable">
+                            <div class="table-row" >
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                            </div>
+                            <div class="table-row" >
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                                <div class="table-block"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
