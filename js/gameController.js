@@ -14,7 +14,7 @@ const INVALID = 0;
 const VALID = 1;
 const VALID_CAPTURE = 2;
 
-let сanvas;
+let canvas;
 let amazonCtx;
 let currentTeamText;
 let whiteCasualitiesText;
@@ -41,9 +41,9 @@ const piecesCharacters = {
 document.addEventListener("DOMContentLoaded", onLoad);
 
 function onLoad() {
-    сanvas = document.getElementById("chessCanvas");
+    canvas = document.getElementById("chessCanvas");
     amazonCtx = chessCanvas.getContext("2d");
-    сanvas.addEventListener("click", onClick);
+    canvas.addEventListener("click", onClick);
 
     currentTeamText = document.getElementById("currentTeamText");
 

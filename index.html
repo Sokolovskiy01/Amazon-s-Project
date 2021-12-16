@@ -3,14 +3,11 @@
     <head>
         <link rel="stylesheet" href="css/main.css">
         <script type="text/javascript">
+
+            let gameType;
+
             function createField(width, height) {
                 let gameTable = document.getElementById("gameTable");
-
-                //let tableRow = document.createElement("div");
-                //tableRow.className = 'table-row';
-
-                //let tableBlock = document.createElement("div");
-                //tableBlock.className = 'table-block';
 
                 for (let i = 0; i < height; i++) {
                     let tableRow = document.createElement("div");
@@ -25,18 +22,45 @@
                     gameTable.append(tableRow);
                 }
             }
+
+            function startGame() {
+                gameType = document.gameChoiceForm.gameMode.value;
+                console.log(gameType);
+                if (gameType == 2) {
+                    createField(6, 6);
+                }
+                else if (gameType == 3) {
+                    createField(8, 8);
+                }
+                else if (gameType == 4) {
+                    createField(10, 10);
+                }
+            }
+
+
         </script>
     </head>
     <body>
         <div class="main-game-page">
             <div class="game-column">
                 <h2 class="game-title">Amazon's game</h2>
-                <div class="main-selector" id="main-selector" >
+                <div class="main-selector" id="mainSelector" >
                     <h3 class="main-selector-title">Select game type</h3>
-                    <button class="game-select-button" id="button_choice_player" onclick="createField(8,8)" >Player VS Player</button>
+                    <button class="game-select-button" id="button_choice_player" >Player VS Player</button>
                     <button class="game-select-button" id="button_choice_ai" >Player VS AI</button>
                 </div>
-                <div class="game-container">
+                <div class="main-selector" id="gamePropertiesSelector">
+                    <h3 class="main-selector-title">Select game type</h3>
+                    <form method="dialog" name="gameChoiceForm" style="display: contents;">
+                        <ul class="main-selector-list">
+                            <li><input type="radio" value="2" name="gameMode" ><label>2 vs 2</label></li>
+                            <li><input type="radio" value="3" name="gameMode" checked><label>3 vs 3</label></li>
+                            <li><input type="radio" value="4" name="gameMode" ><label>4 vs 4</label></li>
+                        </ul>
+                        <button class="game-select-button" id="startGameButton" onclick="startGame()" >Start game</button>
+                    </form>
+                </div>
+                <div class="game-container" id="gameContainer">
                     <div class="game-controls-container">
 
                     </div>
