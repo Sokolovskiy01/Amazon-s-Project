@@ -18,7 +18,7 @@ html, body {
 
 .game-column {
     height: 100%;
-    width: 600px;
+    min-width: 600px;
 }
 
 .game-title {
@@ -39,7 +39,7 @@ html, body {
 }
 
 .game-select-button {
-    border: 2px solid #555;
+    border: 2px solid #555555;
     border-radius: 6px;
     padding: 10px 14px;
     background-color: #ffffff;
@@ -56,5 +56,56 @@ html, body {
 
 /* game table */
 
+.game-table-container {
+    height: auto;
+    position: relative;
+    padding: 1em;
+}
+
+.game-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.table-row {
+    width: 100%;
+    height: auto;
+    display: flex;
+}
+
+.table-row:nth-child(even) > .table-block:nth-child(even) {
+    background-image: url('../assets/fieldB.png');
+}
+
+.table-row:nth-child(even) > .table-block:nth-child(odd) {
+    background-image: url('../assets/fieldW.png');
+}
+
+.table-row:nth-child(odd) > .table-block:nth-child(odd) {
+    background-image: url('../assets/fieldB.png');
+}
+
+.table-row:nth-child(odd) > .table-block:nth-child(even) {
+    background-image: url('../assets/fieldW.png');
+}
+
+/*.table-block:nth-child(even) {
+    background-color: black;
+}
+
+.table-block:nth-child(odd) {
+    background-color: white;
+}*/
+
+.table-block {
+    display: inline-flex;
+    height: 64px;
+    width: 64px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
 
 /* endof game table */
