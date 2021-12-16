@@ -2,22 +2,48 @@
 <html>
     <head>
         <link rel="stylesheet" href="css/main.css">
+        <script type="text/javascript">
+            function createField(width, height) {
+                let gameTable = document.getElementById("gameTable");
+
+                //let tableRow = document.createElement("div");
+                //tableRow.className = 'table-row';
+
+                //let tableBlock = document.createElement("div");
+                //tableBlock.className = 'table-block';
+
+                for (let i = 0; i < height; i++) {
+                    let tableRow = document.createElement("div");
+                    tableRow.className = 'table-row';
+                    tableRow.id = 'row' + i;
+                    for (let j = 0; j < width; j++) {
+                        let tableBlock = document.createElement("div");
+                        tableBlock.className = 'table-block';
+                        tableBlock.id = 'tb' + i + '_' + j;
+                        tableRow.append(tableBlock);
+                    }
+                    gameTable.append(tableRow);
+                }
+            }
+        </script>
     </head>
     <body>
         <div class="main-game-page">
             <div class="game-column">
-                <h2>Amazon's game</h2>
-                <div id="main-selector" >
-                    <h3>Select game type</h3>
-                    <button id="button_choice_player" >Player VS Player</button>
-                    <button id="button_choice_ai" >Player VS AI</button>
+                <h2 class="game-title">Amazon's game</h2>
+                <div class="main-selector" id="main-selector" >
+                    <h3 class="main-selector-title">Select game type</h3>
+                    <button class="game-select-button" id="button_choice_player" onclick="createField(8,8)" >Player VS Player</button>
+                    <button class="game-select-button" id="button_choice_ai" >Player VS AI</button>
                 </div>
                 <div class="game-container">
-                    <div>
+                    <div class="game-controls-container">
 
                     </div>
-                    <div class="game-canvas-container">
-                        <canvas></canvas>
+                    <div class="game-table-container">
+                        <div class="game-table" id="gameTable">
+
+                        </div>
                     </div>
                 </div>
             </div>
