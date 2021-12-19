@@ -8,6 +8,7 @@
 
             function createField(width, height) {
                 let gameTable = document.getElementById("gameTable");
+                gameTable.innerHTML = "";
 
                 for (let i = 0; i < height; i++) {
                     let tableRow = document.createElement("div");
@@ -17,6 +18,13 @@
                         let tableBlock = document.createElement("div");
                         tableBlock.className = 'table-block';
                         tableBlock.id = 'tb' + i + '_' + j;
+                        tableBlock.onclick = (function() {
+                            var currentI = i;
+                            let currJ = j;
+                            return function() { 
+                                onCellClicked(i, j);
+                            }
+                        })();
                         tableRow.append(tableBlock);
                     }
                     gameTable.append(tableRow);
@@ -25,18 +33,46 @@
 
             function startGame() {
                 gameType = document.gameChoiceForm.gameMode.value;
-                console.log(gameType);
                 if (gameType == 2) {
                     createField(6, 6);
+                    placeFigure(0,3, 'figure-black');
+                    placeFigure(5,2, 'figure-black');
+                    placeFigure(2,0, 'figure-white');
+                    placeFigure(3,5, 'figure-white');
                 }
                 else if (gameType == 3) {
                     createField(8, 8);
+                    placeFigure(2,0, 'figure-white');
+                    placeFigure(0,3, 'figure-white');
+                    placeFigure(2,7, 'figure-white');
+                    placeFigure(5,0, 'figure-black');
+                    placeFigure(7,4, 'figure-black');
+                    placeFigure(5,7, 'figure-black');
                 }
                 else if (gameType == 4) {
                     createField(10, 10);
+                    placeFigure(9,3, 'figure-black');
+                    placeFigure(6,0, 'figure-black');
+                    placeFigure(9,6, 'figure-black');
+                    placeFigure(6,9, 'figure-black');
+                    placeFigure(3,0, 'figure-white');
+                    placeFigure(0,3, 'figure-white');
+                    placeFigure(0,6, 'figure-white');
+                    placeFigure(3,9, 'figure-white');
                 }
             }
 
+            function placeFigure(i, j, className) {
+                let tableCell = document.getElementById('tb' + i + '_' + j);
+                tableCell.innerHTML = "";
+                let figure = document.createElement('div');
+                figure.className = 'figure ' + className;
+                tableCell.append(figure);
+            }
+
+            function onCellClicked(i, j) {
+                alert('Clicked on ' + i + ' ' + j + ' cell');
+            }
 
         </script>
     </head>
@@ -61,10 +97,10 @@
                     </form>
                 </div>
                 <div class="game-container" id="gameContainer">
-                    <div class="game-controls-container">
+                    <div class="game-controls-container"  >
 
                     </div>
-                    <div class="game-table-container">
+                    <div class="game-table-container" >
                         <div class="game-table" id="gameTable">
 
                         </div>

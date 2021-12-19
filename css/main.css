@@ -30,6 +30,7 @@ html, body {
     flex-direction: column;
     background-color: #649ce3;
     padding: 6px;
+    margin: 6px 0;
     border-radius: 6px;
     align-items: center;
 }
