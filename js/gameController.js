@@ -3,6 +3,7 @@ const BLACK_TILE_COLOR = "rgb(206, 162, 128)";
 const HIGHLIGHT_COLOR = "rgb(75, 175, 75)";
 const WHITE = 'figure figure-white';
 const BLACK = 'figure figure-black';
+const ARROW = "X";
 const EMPTY = -1;
 const QUEEN = 2;
 
@@ -39,6 +40,7 @@ let state = 'EMPTY';
 
 function startGame() {
     isMove = false;
+    isShoot = false;
     currentTeam = TEAMWHITE;
     currentTeamText = document.getElementById("currentTeamText");
     currentTeamText.textContent = "White's turn";
@@ -112,23 +114,57 @@ function replaceFigure(i, j) {
         tableCellTo.innerHTML = tableCellFrom.innerHTML;
         tableCellFrom.innerHTML = "";
         isMove = false;
-        changeCurrentTeam();
+        isShoot = true;
+        currX = i;
+        currY = j;
     }
 }
 
-function onCellClicked(i, j) {
-    console.log('curr ' + i + ' ' + j + ' '+ isMove);
-    let tableCell = document.getElementById('tb' + i + '_' + j);
-    let className = tableCell.innerHTML.substring(12, 31);//ask Dima
+function makeShoot(i, j, className){
 
-    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className)){
+    console.log('arrow'+i + ' ' + j + ' ');
+    let tableCell = document.getElementById('tb' + i + '_' + j);
+    tableCell.innerHTML = "X";
+    let figure = document.createElement('div');
+    figure.className = className;
+    tableCell.append(figure);
+    isShoot = false;
+    changeCurrentTeam();
+}
+
+function onCellClicked(i, j) {
+    console.log(i + ' ' + j + ' '+ isMove);
+    let tableCell = document.getElementById('tb' + i + '_' + j);
+    let className = "";
+    if(tableCell.innerHTML != ""){
+        className = tableCell.childNodes[0].className;
+    }
+
+    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className) && tableCell.innerHTML != "X" && isShoot == false){
         isMove = true;
         currX = i;
         currY = j;
     }
-    if(tableCell.innerHTML == "" && isMove == true){
+    if(tableCell.innerHTML == "" && isMove == true && isShoot == false && checkValidMovement(i, j)){
         replaceFigure(i, j);
     }
+    if(tableCell.innerHTML == "" && isShoot == true  && checkValidMovement(i, j)){
+        makeShoot(i, j, ARROW);
+    }
+}
+
+function checkValidMovement(i, j){ 
+    if(isShoot == true || isMove == true){
+        if(currX == i || currY == j)return true;
+        else if(currX > i){
+            const x = currX - i;
+            if(currY + x == j || currY - x == j)return true;
+        }else if(currX < i){
+            const x = i - currX;
+            if(currY + x == j || currY - x == j)return true;
+        }
+    }
+    return false;
 }
 
 function changeCurrentTeam() {
@@ -144,7 +180,8 @@ function changeCurrentTeam() {
 function getCurrentTeam(figure){
     if(figure == WHITE){
         return TEAMWHITE;
-    }else{
+    }else if(figure == BLACK){
         return TEAMBLACK;
     }
+    return null;
 }
