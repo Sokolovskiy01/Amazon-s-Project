@@ -1,12 +1,8 @@
-const BOARD_WIDTH = 10;
-const BOARD_HEIGHT = 10;
-
-const TILE_SIZE = 50;
 const WHITE_TILE_COLOR = "rgb(255, 228, 196)";
 const BLACK_TILE_COLOR = "rgb(206, 162, 128)";
 const HIGHLIGHT_COLOR = "rgb(75, 175, 75)";
-const WHITE = 0;
-const BLACK = 1;
+const WHITE = 'figure figure-white';
+const BLACK = 'figure figure-black';
 const EMPTY = -1;
 const QUEEN = 2;
 
@@ -14,18 +10,14 @@ const INVALID = 0;
 const VALID = 1;
 const VALID_CAPTURE = 2;
 
-let сanvas;
+let canvas;
 let amazonCtx;
-let currentTeamText;
+
 let whiteCasualitiesText;
 let blackCasualitiesText;
 let totalVictoriesText;
 
 let board;
-let currentTeam;
-
-let curX;
-let curY;
 
 let whiteCasualities;
 let blackCasualities;
@@ -33,216 +25,126 @@ let blackCasualities;
 let whiteVictories;
 let blackVictories;
 
-const piecesCharacters = {
-    0: '♕',
-    1: 'x'
-};
+let isMove;
+let isShoot;
+let currX;
+let currY;
+let currentTeam;
+const TEAMWHITE = 0;
+const TEAMBLACK = 1;
+let currentTeamText;
 
-document.addEventListener("DOMContentLoaded", onLoad);
+let gameType;
+let state = 'EMPTY';
 
-function onLoad() {
-    сanvas = document.getElementById("chessCanvas");
-    amazonCtx = chessCanvas.getContext("2d");
-    сanvas.addEventListener("click", onClick);
-
+function startGame() {
+    isMove = false;
+    currentTeam = TEAMWHITE;
     currentTeamText = document.getElementById("currentTeamText");
-
-    whiteCasualitiesText = document.getElementById("whiteCasualities");
-    blackCasualitiesText = document.getElementById("blackCasualities");
-
-    totalVictoriesText = document.getElementById("totalVictories");
-    whiteVictories = 0;
-    blackVictories = 0;
-    
-    startGame();
-}
-
-function startGame() {    
-    board = new Board();
-    curX = -1;
-    curY = -1;
-
-    currentTeam = WHITE;
     currentTeamText.textContent = "White's turn";
-
-    whiteCasualities = [0];
-    blackCasualities = [0];
-
-    //new fun repaintBoard()
-    //new fun updateWhiteCasualities()
-    //new fun updateBlackCasualities()
-}
-
-function onClick(event) {
-    let chessCanvasX = chessCanvas.getBoundingClientRect().left;
-    let chessCanvasY = chessCanvas.getBoundingClientRect().top;
-
-    let x = Math.floor((event.clientX-chessCanvasX)/TILE_SIZE);
-    let y = Math.floor((event.clientY-chessCanvasY)/TILE_SIZE);
-
-    if (checkValidMovement(x, y) === true) {
-        if (checkValidCapture(x, y) === true) {
-            /////////////////////////////////////////
-            startGame();
-        }
-        changeCurrentTeam();
-    } else {
-        curX = x;
-        curY = y;
+    gameType = document.gameChoiceForm.gameMode.value;
+    if (gameType == 2) {
+        createField(6, 6);
+        placeFigure(0,3, BLACK);
+        placeFigure(5,2, BLACK);
+        placeFigure(2,0, WHITE);
+        placeFigure(3,5, WHITE);
     }
-    //repaintBoard();
+    else if (gameType == 3) {
+        createField(8, 8);
+        placeFigure(2,0, WHITE);
+        placeFigure(0,3, WHITE);
+        placeFigure(2,7, WHITE);
+        placeFigure(5,0, BLACK);
+        placeFigure(7,4, BLACK);
+        placeFigure(5,7, BLACK);
+    }
+    else if (gameType == 4) {
+        createField(10, 10);
+        placeFigure(9,3, BLACK);
+        placeFigure(6,0, BLACK);
+        placeFigure(9,6, BLACK);
+        placeFigure(6,9, BLACK);
+        placeFigure(3,0, WHITE);
+        placeFigure(0,3, WHITE);
+        placeFigure(0,6, WHITE);
+        placeFigure(3,9, WHITE);
+    }
 }
 
-function checkValidMovement(x, y) {
-    if (board.validMoves[y][x] === VALID || board.validMoves[y][x] === VALID_CAPTURE) return true;
-    else return false;
+function createField(width, height) {
+    let gameTable = document.getElementById("gameTable");
+    gameTable.innerHTML = "";
+
+    for (let i = 0; i < height; i++) {
+        let tableRow = document.createElement("div");
+        tableRow.className = 'table-row';
+        tableRow.id = 'row' + i;
+        for (let j = 0; j < width; j++) {
+            let tableBlock = document.createElement("div");
+            tableBlock.className = 'table-block';
+            tableBlock.id = 'tb' + i + '_' + j;
+            tableBlock.onclick = (function() {
+                var currentI = i;
+                let currJ = j;
+                return function() { 
+                    onCellClicked(i, j);
+                }
+            })();
+            tableRow.append(tableBlock);
+        }
+        gameTable.append(tableRow);
+    }
 }
 
-function checkValidCapture(x, y) {
-    if (board.validMoves[y][x] === VALID_CAPTURE) return true;
-    else return false;
+function placeFigure(i, j, className) {
+    let tableCell = document.getElementById('tb' + i + '_' + j);
+    tableCell.innerHTML = "";
+    let figure = document.createElement('div');
+    figure.className = className;
+    tableCell.append(figure);
+}
+
+function replaceFigure(i, j) { 
+    let tableCellTo = document.getElementById('tb' + i + '_' + j);
+    let tableCellFrom = document.getElementById('tb' + currX + '_' + currY);
+    if(isMove){
+        tableCellTo.innerHTML = tableCellFrom.innerHTML;
+        tableCellFrom.innerHTML = "";
+        isMove = false;
+        changeCurrentTeam();
+    }
+}
+
+function onCellClicked(i, j) {
+    console.log('curr ' + i + ' ' + j + ' '+ isMove);
+    let tableCell = document.getElementById('tb' + i + '_' + j);
+    let className = tableCell.innerHTML.substring(12, 31);//ask Dima
+
+    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className)){
+        isMove = true;
+        currX = i;
+        currY = j;
+    }
+    if(tableCell.innerHTML == "" && isMove == true){
+        replaceFigure(i, j);
+    }
 }
 
 function changeCurrentTeam() {
-    if (currentTeam === WHITE) {
+    if (currentTeam === TEAMWHITE) {
         currentTeamText.textContent = "Black's turn";
-        currentTeam = BLACK;
+        currentTeam = TEAMBLACK;
     } else {
         currentTeamText.textContent = "White's turn";
-        currentTeam = WHITE;
+        currentTeam = TEAMWHITE;
     }
 }
 
-class Board {
-    constructor() {
-        this.tiles = [];
-
-        this.tiles.push([
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(QUEEN, BLACK),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(QUEEN, BLACK),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY)
-        ]);
-
-        for (let i = 0; i < 2; i++) {
-            this.tiles.push([
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY)
-            ]);
-        }
-
-        this.tiles.push([
-            new Tile(QUEEN, BLACK),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(QUEEN, BLACK)
-        ]);
-
-        for (let i = 0; i < 2; i++) {
-            this.tiles.push([
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY)
-            ]);
-        }
-
-        this.tiles.push([
-            new Tile(QUEEN, WHITE),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(QUEEN, WHITE)
-        ]);
-
-        for (let i = 0; i < 2; i++) {
-            this.tiles.push([
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY),
-                new Tile(EMPTY, EMPTY)
-            ]);
-        }
-
-        this.tiles.push([
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(QUEEN, WHITE),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(QUEEN, WHITE),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY),
-            new Tile(EMPTY, EMPTY)
-        ]);
-
-        this.validMoves = [];
-        for (let i = 0; i < BOARD_HEIGHT; i++) {
-            this.validMoves.push([
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID,
-                INVALID
-            ]);
-        }
-    }
-
-    resetValidMoves() {
-        for (let i = 0; i < BOARD_HEIGHT; i++) {
-            for (let j = 0; j < BOARD_WIDTH; j++) {
-                this.validMoves[i][j] = INVALID;
-            }
-        }
-    }
-}
-
-class Tile {
-    constructor(pieceType, team) {
-        this.pieceType = pieceType;
-        this.team = team;
+function getCurrentTeam(figure){
+    if(figure == WHITE){
+        return TEAMWHITE;
+    }else{
+        return TEAMBLACK;
     }
 }
