@@ -101,7 +101,6 @@ html, body {
 /*.table-block:nth-child(even) {
     background-color: black;
 }
-
 .table-block:nth-child(odd) {
     background-color: white;
 }*/
@@ -111,6 +110,14 @@ html, body {
     height: 64px;
     width: 64px;
     padding: 2px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.figure {
+    width: 100%;
+    height: 100%;
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
