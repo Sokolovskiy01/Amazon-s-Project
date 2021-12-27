@@ -123,6 +123,14 @@ html, body {
     background-size: contain;
 }
 
+.figure {
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
 .figure-white {
     background-image: url('../assets/queenW.png');
 }
