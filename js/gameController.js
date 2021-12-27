@@ -3,6 +3,8 @@ const BLACK_TILE_COLOR = "rgb(206, 162, 128)";
 const HIGHLIGHT_COLOR = "rgb(75, 175, 75)";
 const WHITE = 'figure figure-white';
 const BLACK = 'figure figure-black';
+const WHITE_LOG = '&#x2656;';
+const BLACK_LOG = '&#x265C;';
 //const ARROW = "X";
 //const EMPTY = -1;
 //const QUEEN = 2;
@@ -13,14 +15,14 @@ const INVALID = 0;
 const VALID = 1;
 const VALID_CAPTURE = 2;
 
-let canvas;
-let amazonCtx;
+//let canvas;
+//let amazonCtx;
 
 let whiteCasualitiesText;
 let blackCasualitiesText;
 let totalVictoriesText;
 
-let board;
+//let board;
 
 let whiteCasualities;
 let blackCasualities;
@@ -36,6 +38,9 @@ let currentTeam;
 const TEAMWHITE = 0;
 const TEAMBLACK = 1;
 let currentTeamText;
+let gameTable;
+let gameLog;
+let highlightedCell;
 
 let gameType;
 let state = 'EMPTY';
@@ -46,6 +51,9 @@ function startGame() {
     currentTeam = TEAMWHITE;
     currentTeamText = document.getElementById("currentTeamText");
     currentTeamText.textContent = "White's turn";
+    gameTable = document.getElementById("gameTable");
+    gameTable.classList.add('tabble-white-turn');
+    gameLog = document.getElementById('gameLog');
     gameType = document.gameChoiceForm.gameMode.value;
     if (gameType == 2) {
         createField(6, 6);
@@ -77,7 +85,6 @@ function startGame() {
 }
 
 function createField(width, height) {
-    let gameTable = document.getElementById("gameTable");
     gameTable.innerHTML = "";
 
     for (let i = 0; i < height; i++) {
@@ -119,6 +126,7 @@ function replaceFigure(i, j) {
         tableCellFrom.dataset.state = CellState.EMPTY;
         isMove = false;
         isShoot = true;
+        logMove(currX, currY, i, j);
         currX = i;
         currY = j;
         highlightCurrentFigure();
@@ -172,8 +180,6 @@ function checkValidMovement(i, j){
     return false;
 }
 
-let highlightedCell;
-
 function highlightCurrentFigure() {
     if (highlightedCell != undefined) deHighlightFigure();
     let tableCell = document.getElementById('tb' + currX + '_' + currY);
@@ -187,15 +193,19 @@ function deHighlightFigure() {
 }
 
 function showPossibleFigureMoves() {
-    
+
 }
 
 function changeCurrentTeam() {
     if (currentTeam === TEAMWHITE) {
         currentTeamText.textContent = "Black's turn";
+        gameTable.classList.remove('tabble-white-turn');
+        gameTable.classList.add('table-black-turn');
         currentTeam = TEAMBLACK;
     } else {
         currentTeamText.textContent = "White's turn";
+        gameTable.classList.remove('table-black-turn');
+        gameTable.classList.add('tabble-white-turn');
         currentTeam = TEAMWHITE;
     }
 }
@@ -207,4 +217,20 @@ function getCurrentTeam(figure) {
         return TEAMBLACK;
     }
     return null;
+}
+
+function logMove(fromI, fromJ, toI, toJ) {
+    let symbol;
+    if (currentTeam == TEAMWHITE) symbol = WHITE_LOG;
+    else if (currentTeam == TEAMBLACK) symbol = BLACK_LOG;
+
+    // другого способа нету
+    let tmp = document.createElement('span');
+    tmp.innerHTML = symbol;
+
+    gameLog.value += tmp.innerHTML + ': ' + '(' + fromI + ',' + fromJ + ')->(' + toI + ',' + toJ + ')\n'; 
+}
+
+function logShot() {
+
 }
