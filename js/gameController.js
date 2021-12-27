@@ -3,9 +3,11 @@ const BLACK_TILE_COLOR = "rgb(206, 162, 128)";
 const HIGHLIGHT_COLOR = "rgb(75, 175, 75)";
 const WHITE = 'figure figure-white';
 const BLACK = 'figure figure-black';
-const ARROW = "X";
-const EMPTY = -1;
-const QUEEN = 2;
+//const ARROW = "X";
+//const EMPTY = -1;
+//const QUEEN = 2;
+
+const CellState = Object.freeze({ EMPTY: -1, ARROW: 1, QUEEN: 2 });
 
 const INVALID = 0;
 const VALID = 1;
@@ -87,12 +89,11 @@ function createField(width, height) {
             tableBlock.className = 'table-block';
             tableBlock.id = 'tb' + i + '_' + j;
             tableBlock.onclick = (function() {
-                var currentI = i;
-                let currJ = j;
                 return function() { 
                     onCellClicked(i, j);
                 }
             })();
+            tableBlock.dataset.state = CellState.EMPTY;
             tableRow.append(tableBlock);
         }
         gameTable.append(tableRow);
@@ -105,6 +106,7 @@ function placeFigure(i, j, className) {
     let figure = document.createElement('div');
     figure.className = className;
     tableCell.append(figure);
+    tableCell.dataset.state = CellState.QUEEN;
 }
 
 function replaceFigure(i, j) { 
@@ -112,23 +114,26 @@ function replaceFigure(i, j) {
     let tableCellFrom = document.getElementById('tb' + currX + '_' + currY);
     if(isMove){
         tableCellTo.innerHTML = tableCellFrom.innerHTML;
+        tableCellTo.dataset.state = CellState.QUEEN;
         tableCellFrom.innerHTML = "";
+        tableCellFrom.dataset.state = CellState.EMPTY;
         isMove = false;
         isShoot = true;
         currX = i;
         currY = j;
+        highlightCurrentFigure();
     }
 }
 
-function makeShoot(i, j, className){
-
+function makeShoot(i, j){
     console.log('arrow'+i + ' ' + j + ' ');
     let tableCell = document.getElementById('tb' + i + '_' + j);
-    tableCell.innerHTML = "X";
-    let figure = document.createElement('div');
-    figure.className = className;
-    tableCell.append(figure);
+    let arrowFigure = document.createElement('div');
+    arrowFigure.className = 'figure figure-arrow';
+    tableCell.append(arrowFigure);
+    tableCell.dataset.state = CellState.ARROW;
     isShoot = false;
+    deHighlightFigure();
     changeCurrentTeam();
 }
 
@@ -136,35 +141,53 @@ function onCellClicked(i, j) {
     console.log(i + ' ' + j + ' '+ isMove);
     let tableCell = document.getElementById('tb' + i + '_' + j);
     let className = "";
-    if(tableCell.innerHTML != ""){
-        className = tableCell.childNodes[0].className;
-    }
+    if(tableCell.innerHTML != "") className = tableCell.childNodes[0].className;
 
-    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className) && tableCell.innerHTML != "X" && isShoot == false){
+    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className) && tableCell.dataset.state != CellState.ARROW && isShoot == false){
         isMove = true;
         currX = i;
         currY = j;
+        highlightCurrentFigure();
     }
     if(tableCell.innerHTML == "" && isMove == true && isShoot == false && checkValidMovement(i, j)){
         replaceFigure(i, j);
     }
     if(tableCell.innerHTML == "" && isShoot == true  && checkValidMovement(i, j)){
-        makeShoot(i, j, ARROW);
+        makeShoot(i, j);
     }
 }
 
+// TODO: Нужно сделать проверку на препятствие передвижению стрелой
 function checkValidMovement(i, j){ 
-    if(isShoot == true || isMove == true){
-        if(currX == i || currY == j)return true;
-        else if(currX > i){
+    if(isShoot == true || isMove == true) {
+        if(currX == i || currY == j) return true;
+        else if(currX > i) {
             const x = currX - i;
-            if(currY + x == j || currY - x == j)return true;
-        }else if(currX < i){
+            if(currY + x == j || currY - x == j) return true;
+        } else if(currX < i) {
             const x = i - currX;
-            if(currY + x == j || currY - x == j)return true;
+            if(currY + x == j || currY - x == j) return true;
         }
     }
     return false;
+}
+
+let highlightedCell;
+
+function highlightCurrentFigure() {
+    if (highlightedCell != undefined) deHighlightFigure();
+    let tableCell = document.getElementById('tb' + currX + '_' + currY);
+    tableCell.classList.add('block-highlight');
+    highlightedCell = tableCell;
+}
+
+function deHighlightFigure() {
+    highlightedCell.classList.remove('block-highlight');
+    highlightedCell = undefined;
+}
+
+function showPossibleFigureMoves() {
+    
 }
 
 function changeCurrentTeam() {
@@ -177,10 +200,10 @@ function changeCurrentTeam() {
     }
 }
 
-function getCurrentTeam(figure){
-    if(figure == WHITE){
+function getCurrentTeam(figure) {
+    if(figure == WHITE) {
         return TEAMWHITE;
-    }else if(figure == BLACK){
+    } else if(figure == BLACK) {
         return TEAMBLACK;
     }
     return null;
