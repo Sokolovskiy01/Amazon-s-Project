@@ -5,24 +5,16 @@ const WHITE = 'figure figure-white';
 const BLACK = 'figure figure-black';
 const WHITE_LOG = '&#x2656;';
 const BLACK_LOG = '&#x265C;';
-//const ARROW = "X";
-//const EMPTY = -1;
-//const QUEEN = 2;
 
-const CellState = Object.freeze({ EMPTY: -1, ARROW: 1, QUEEN: 2 });
+const CellState = Object.freeze({ EMPTY: -1, ARROW: 1, QUEEN: 2 , CAPTURE: 3});
 
 const INVALID = 0;
 const VALID = 1;
 const VALID_CAPTURE = 2;
 
-//let canvas;
-//let amazonCtx;
-
 let whiteCasualitiesText;
 let blackCasualitiesText;
 let totalVictoriesText;
-
-//let board;
 
 let whiteCasualities;
 let blackCasualities;
@@ -35,6 +27,10 @@ let isShoot;
 let currX;
 let currY;
 let currentTeam;
+let currentPossibleWays;
+let whiteCaptured;
+let blackCaptured;
+let MaxFigurePerTeam;
 const TEAMWHITE = 0;
 const TEAMBLACK = 1;
 let currentTeamText;
@@ -44,10 +40,17 @@ let highlightedCell;
 
 let gameType;
 let state = 'EMPTY';
+let startValidMove;
+let stopValidMove;
+let boardHeight;
+let boardWidth;
 
 function startGame() {
     isMove = false;
     isShoot = false;
+    currentPossibleWays = 0;
+    whiteCaptured = 0;
+    blackCaptured = 0;
     currentTeam = TEAMWHITE;
     currentTeamText = document.getElementById("currentTeamText");
     currentTeamText.textContent = "White's turn";
@@ -55,6 +58,7 @@ function startGame() {
     gameTable.classList.add('tabble-white-turn');
     gameLog = document.getElementById('gameLog');
     gameType = document.gameChoiceForm.gameMode.value;
+    MaxFigurePerTeam = gameType;
     if (gameType == 2) {
         createField(6, 6);
         placeFigure(0,3, BLACK);
@@ -85,6 +89,8 @@ function startGame() {
 }
 
 function createField(width, height) {
+    boardHeight = height;
+    boardWidth = width;
     gameTable.innerHTML = "";
 
     for (let i = 0; i < height; i++) {
@@ -130,11 +136,11 @@ function replaceFigure(i, j) {
         currX = i;
         currY = j;
         highlightCurrentFigure();
+        showPossibleFigureMoves();
     }
 }
 
 function makeShoot(i, j){
-    console.log('arrow'+i + ' ' + j + ' ');
     let tableCell = document.getElementById('tb' + i + '_' + j);
     let arrowFigure = document.createElement('div');
     arrowFigure.className = 'figure figure-arrow';
@@ -142,20 +148,26 @@ function makeShoot(i, j){
     tableCell.dataset.state = CellState.ARROW;
     isShoot = false;
     deHighlightFigure();
+    stopShowPossibleFigureMoves();
     changeCurrentTeam();
 }
 
 function onCellClicked(i, j) {
-    console.log(i + ' ' + j + ' '+ isMove);
     let tableCell = document.getElementById('tb' + i + '_' + j);
     let className = "";
     if(tableCell.innerHTML != "") className = tableCell.childNodes[0].className;
 
-    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className) && tableCell.dataset.state != CellState.ARROW && isShoot == false){
+    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className) && tableCell.dataset.state != CellState.ARROW && isShoot == false && tableCell.dataset.state != CellState.CAPTURE){
         isMove = true;
         currX = i;
         currY = j;
         highlightCurrentFigure();
+        showPossibleFigureMoves();
+        if(isCapture()){
+            tableCell.dataset.state = CellState.CAPTURE;
+            if(getCurrentTeam(className) == TEAMWHITE)whiteCaptured ++;
+            else blackCaptured ++;
+        }
     }
     if(tableCell.innerHTML == "" && isMove == true && isShoot == false && checkValidMovement(i, j)){
         replaceFigure(i, j);
@@ -163,25 +175,88 @@ function onCellClicked(i, j) {
     if(tableCell.innerHTML == "" && isShoot == true  && checkValidMovement(i, j)){
         makeShoot(i, j);
     }
+    isEnd();
 }
 
-// TODO: Нужно сделать проверку на препятствие передвижению стрелой
 function checkValidMovement(i, j){ 
     if(isShoot == true || isMove == true) {
-        if(currX == i || currY == j) return true;
-        else if(currX > i) {
-            const x = currX - i;
-            if(currY + x == j || currY - x == j) return true;
-        } else if(currX < i) {
-            const x = i - currX;
-            if(currY + x == j || currY - x == j) return true;
+        //vertical/horizontal
+        if(currX == i || currY == j) {
+            if(currX == i){
+                getStartStopMovement(currY, j);
+                return validHorVerMovement(i, null);
+            }else{
+                getStartStopMovement(currX, i);
+                return validHorVerMovement(null, j);
+            }
+        }//cross up right
+        else if(currX > i && currY < j) {
+            return validCrossMovement(i, j, true, false, true);
+        //cross up left
+        }else if(currX > i && currY > j){
+            return validCrossMovement(i, j, true, false, false);
+        //cross down right    
+        }else if(currX < i && currY < j){
+            return validCrossMovement(i, j, false, true, true);
+        //cross down left
+        }else if(currX < i && currY > j) {
+            return validCrossMovement(i, j, false, true, false);
         }
     }
     return false;
 }
+function validCrossMovement(i, j, isBigger, opX, opY){
+    var x;
+    if(isBigger) x = currX - i; //diff
+    else x = i - currX;
+    
+    for(let b = 1; b < x; b++){
+        let tableCell;
+        if(!opX && opY) tableCell = document.getElementById('tb' + (currX-b) + '_' + (currY+b));
+        else if(!opX && !opY) tableCell = document.getElementById('tb' + (currX-b) + '_' + (currY-b));
+        else if(opX && opY) tableCell = document.getElementById('tb' + (currX+b) + '_' + (currY+b));
+        else if(opX && !opY) tableCell = document.getElementById('tb' + (currX+b) + '_' + (currY-b));
+        else return false;
+
+        if(tableCell == null){
+            return false;
+        }
+
+        if(tableCell.dataset.state == CellState.ARROW || tableCell.dataset.state == CellState.QUEEN){
+            return false;
+        }
+    }
+    if(currY + x == j || currY - x == j) return true;
+}
+
+function validHorVerMovement(i , j){
+    for(let b = startValidMove; b < stopValidMove; b++){
+        let tableCell;
+        if(i != null){tableCell = document.getElementById('tb' + i + '_' + b); }
+        else {tableCell = document.getElementById('tb' + b + '_' + j); }
+
+        if(tableCell.dataset.state == CellState.ARROW || tableCell.dataset.state == CellState.QUEEN){
+            return false;
+        }
+    }
+    return true;
+}
+
+function getStartStopMovement(a, b){
+    if(a > b){
+        startValidMove = b + 1;
+        stopValidMove = a;
+    }else{
+        startValidMove = a + 1;
+        stopValidMove = b;
+    }
+}
 
 function highlightCurrentFigure() {
-    if (highlightedCell != undefined) deHighlightFigure();
+    if (highlightedCell != undefined) {
+        deHighlightFigure();
+        stopShowPossibleFigureMoves();
+    }
     let tableCell = document.getElementById('tb' + currX + '_' + currY);
     tableCell.classList.add('block-highlight');
     highlightedCell = tableCell;
@@ -193,7 +268,25 @@ function deHighlightFigure() {
 }
 
 function showPossibleFigureMoves() {
+    for (let i = 0; i < boardHeight; i++) {
+        for (let j = 0; j < boardWidth; j++) {
+            let tableCell = document.getElementById('tb' + i + '_' + j);
+            if(checkValidMovement(i, j) && tableCell.dataset.state != CellState.QUEEN && tableCell.dataset.state != CellState.ARROW){
+                tableCell.classList.add('possible-way');
+                currentPossibleWays++;
+            }
+        }
+    }
+}
 
+function stopShowPossibleFigureMoves() {
+    currentPossibleWays = 0;
+    for (let i = 0; i < boardHeight; i++) {
+        for (let j = 0; j < boardWidth; j++) {
+            let tableCell = document.getElementById('tb' + i + '_' + j);
+            tableCell.classList.remove('possible-way');
+        }
+    }
 }
 
 function changeCurrentTeam() {
@@ -219,6 +312,11 @@ function getCurrentTeam(figure) {
     return null;
 }
 
+function isCapture(){
+    if(currentPossibleWays == 0) return true;
+    return false;
+}
+
 function logMove(fromI, fromJ, toI, toJ) {
     let symbol;
     if (currentTeam == TEAMWHITE) symbol = WHITE_LOG;
@@ -233,4 +331,12 @@ function logMove(fromI, fromJ, toI, toJ) {
 
 function logShot() {
 
+}
+
+function isEnd(){
+    if(whiteCaptured == MaxFigurePerTeam){
+        currentTeamText.textContent = "Black team WIN";
+    }else if(blackCaptured == MaxFigurePerTeam){
+        currentTeamText.textContent = "White team WIN";
+    }
 }

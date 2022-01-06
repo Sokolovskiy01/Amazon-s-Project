@@ -188,8 +188,6 @@ html, body {
 }
 
 .possible-way {
-    width: 70%;
-    height: 70%;
     background-color: #40ff45;
     border-radius: 50%;
     opacity: 0.5;
