@@ -19,6 +19,7 @@ html, body {
 .game-column {
     height: 100%;
     min-width: 600px;
+    position: relative;
 }
 
 .game-title {
@@ -28,11 +29,19 @@ html, body {
 .main-selector {
     display: flex;
     flex-direction: column;
-    background-color: #649ce3;
+    background-color: #d9d9d9;
+    padding: 18px 6px;
     padding: 6px;
     margin: 6px 0;
     border-radius: 6px;
     align-items: center;
+    position: absolute;
+    width: 100%;
+    top: 30%;
+}
+
+.non-shown {
+    visibility: hidden;
 }
 
 .main-selector-title {
@@ -46,7 +55,7 @@ html, body {
 }
 
 .game-select-button {
-    border: 2px solid #555555;
+    border: none;
     border-radius: 6px;
     padding: 10px 14px;
     background-color: #ffffff;
@@ -65,6 +74,11 @@ html, body {
     display: flex;
 }
 
+.current-team-text {
+    width: 100%;
+    text-align: center;
+}
+
 .game-controls-container {
     display: flex;
     flex-direction: column;
@@ -76,11 +90,54 @@ html, body {
     height: 32px;
     flex-shrink: 0;
     display: flex;
+    margin-bottom: 4px;
 }
 
 .game-controls-button {
     width: 50%;
     height: 100%;
+    border-style: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #ffffff;
+    transition: 0.2s ease all;
+}
+
+.game-controls-button:hover {
+    z-index: 20;
+}
+
+.button-red {
+    background-color: #cc3333;
+    color: #ffffff;
+}
+
+.button-green {
+    background-color: #0da920;
+    color: #ffffff;
+}
+
+.button-neutral {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.button-red:hover {
+    -webkit-box-shadow: 0px 0px 12px 0px #cc3333;
+    -moz-box-shadow: 0px 0px 12px 0px #cc3333;
+    box-shadow: 0px 0px 12px 0px #cc3333;
+}
+
+.button-green:hover {
+    -webkit-box-shadow: 0px 0px 12px 0px #0da920;
+    -moz-box-shadow: 0px 0px 12px 0px #0da920;
+    box-shadow: 0px 0px 12px 0px #0da920;
+}
+
+.button-neutral:hover {
+    -webkit-box-shadow: 0px 0px 12px 0px #d7d7d7;
+    -moz-box-shadow: 0px 0px 12px 0px #d7d7d7;
+    box-shadow: 0px 0px 12px 0px #d7d7d7;
 }
 
 .game-log-container {
@@ -142,13 +199,6 @@ html, body {
     background-image: url('../assets/fieldW.png');
 }
 
-/*.table-block:nth-child(even) {
-    background-color: black;
-}
-.table-block:nth-child(odd) {
-    background-color: white;
-}*/
-
 .table-block {
     display: inline-flex;
     height: 64px;
@@ -160,6 +210,16 @@ html, body {
     align-items: center;
     justify-content: center;
     position: relative;
+}
+
+.table-block::before {
+    content: attr(data-number);
+    right: 3px;
+    top: 3px;
+    font-size: 14px;
+    opacity: 0.6;
+    color: #ffffff;
+    position: absolute;
 }
 
 .figure {
