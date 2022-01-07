@@ -149,6 +149,7 @@ function makeShoot(i, j){
     isShoot = false;
     deHighlightFigure();
     stopShowPossibleFigureMoves();
+    logShot(i, j);
     changeCurrentTeam();
 }
 
@@ -326,11 +327,13 @@ function logMove(fromI, fromJ, toI, toJ) {
     let tmp = document.createElement('span');
     tmp.innerHTML = symbol;
 
-    gameLog.value += tmp.innerHTML + ': ' + '(' + fromI + ',' + fromJ + ')->(' + toI + ',' + toJ + ')\n'; 
+    gameLog.value += tmp.innerHTML + ': ' + '(' + fromI + ',' + fromJ + ')->(' + toI + ',' + toJ + ')'; 
 }
 
-function logShot() {
-
+function logShot(i, j) {
+    let tmp = document.createElement('span');
+    tmp.innerHTML = "&#x1F525";
+    gameLog.value += '->' + tmp.innerHTML + '(' + i + ',' + j + ')\n';
 }
 
 function isEnd(){

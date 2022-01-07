@@ -69,6 +69,7 @@ html, body {
     display: flex;
     flex-direction: column;
     padding: 1em;
+    width: 270px;
 }
 
 .game-controls-buttons-container {
@@ -158,6 +159,7 @@ html, body {
     background-size: contain;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .figure {
@@ -187,7 +189,13 @@ html, body {
     -moz-box-shadow: inset 0px 0px 24px 0px #40ff45d1;
 }
 
-.possible-way {
+.possible-way::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
     background-color: #40ff45;
     border-radius: 50%;
     opacity: 0.5;
