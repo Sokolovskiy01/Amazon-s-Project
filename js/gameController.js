@@ -7,6 +7,9 @@ const WHITE_LOG = '&#x2656;';
 const BLACK_LOG = '&#x265C;';
 
 const CellState = Object.freeze({ EMPTY: -1, ARROW: 1, QUEEN: 2 , CAPTURE: 3});
+const GameMode = Object.freeze({ PLAYER: 0, AI: 1});
+
+let selectedGameMode;
 
 const INVALID = 0;
 const VALID = 1;
@@ -45,6 +48,11 @@ let stopValidMove;
 let boardHeight;
 let boardWidth;
 
+function selectGameMode(mode) {
+    selectGameMode = mode;
+    setStage(UIStage.STAGE_PROPERTIES);
+}
+
 function startGame() {
     isMove = false;
     isShoot = false;
@@ -57,6 +65,7 @@ function startGame() {
     gameTable = document.getElementById("gameTable");
     gameTable.classList.add('tabble-white-turn');
     gameLog = document.getElementById('gameLog');
+    gameLog.value = "";
     gameType = document.gameChoiceForm.gameMode.value;
     MaxFigurePerTeam = gameType;
     if (gameType == 2) {
@@ -86,6 +95,8 @@ function startGame() {
         placeFigure(0,6, WHITE);
         placeFigure(3,9, WHITE);
     }
+    drawFieldMarks();
+    setStage(UIStage.STAGE_GAME);
 }
 
 function createField(width, height) {
@@ -110,6 +121,30 @@ function createField(width, height) {
             tableRow.append(tableBlock);
         }
         gameTable.append(tableRow);
+    }
+}
+
+function mapJToLetters(i) {
+    var ordA = 'A'.charCodeAt(0); // 65
+    var ordZ = 'Z'.charCodeAt(0); // 90
+    var len = ordZ - ordA + 1;
+  
+    var s = "";
+    while(i >= 0) {
+        s = String.fromCharCode(i % len + ordA) + s;
+        i = Math.floor(i / len) - 1;
+    }
+    return s;
+}
+
+function mapIToNumbers(j) {
+    return j + 1;
+}
+
+function drawFieldMarks() {
+    for (let j = 0; j < boardWidth; j++) {
+        let cell = document.getElementById('tb0_' + j);
+        cell.dataset.number = mapJToLetters(j);
     }
 }
 
@@ -149,6 +184,7 @@ function makeShoot(i, j){
     isShoot = false;
     deHighlightFigure();
     stopShowPossibleFigureMoves();
+    logShot(i, j);
     changeCurrentTeam();
 }
 
@@ -165,8 +201,8 @@ function onCellClicked(i, j) {
         showPossibleFigureMoves();
         if(isCapture()){
             tableCell.dataset.state = CellState.CAPTURE;
-            if(getCurrentTeam(className) == TEAMWHITE)whiteCaptured ++;
-            else blackCaptured ++;
+            if (getCurrentTeam(className) == TEAMWHITE) whiteCaptured++;
+            else blackCaptured++;
         }
     }
     if(tableCell.innerHTML == "" && isMove == true && isShoot == false && checkValidMovement(i, j)){
@@ -326,11 +362,13 @@ function logMove(fromI, fromJ, toI, toJ) {
     let tmp = document.createElement('span');
     tmp.innerHTML = symbol;
 
-    gameLog.value += tmp.innerHTML + ': ' + '(' + fromI + ',' + fromJ + ')->(' + toI + ',' + toJ + ')\n'; 
+    gameLog.value += tmp.innerHTML + ': ' + '(' +  mapJToLetters(fromJ) + mapIToNumbers(fromI) + ')->(' + mapJToLetters(toJ) + mapIToNumbers(toI) + ')'; 
 }
 
-function logShot() {
-
+function logShot(i, j) {
+    let tmp = document.createElement('span');
+    tmp.innerHTML = "&#x1F525";
+    gameLog.value += '->' + tmp.innerHTML + '(' + mapJToLetters(j) + mapIToNumbers(i) + ')\n';
 }
 
 function isEnd(){
