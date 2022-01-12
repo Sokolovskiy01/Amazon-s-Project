@@ -95,7 +95,7 @@ function startGame() {
         placeFigure(0,6, WHITE);
         placeFigure(3,9, WHITE);
     }
-    drawFieldMarks();
+    drawFieldMarks(boardHeight, boardWidth);
     setStage(UIStage.STAGE_GAME);
 }
 
@@ -124,29 +124,7 @@ function createField(width, height) {
     }
 }
 
-function mapJToLetters(i) {
-    var ordA = 'A'.charCodeAt(0); // 65
-    var ordZ = 'Z'.charCodeAt(0); // 90
-    var len = ordZ - ordA + 1;
-  
-    var s = "";
-    while(i >= 0) {
-        s = String.fromCharCode(i % len + ordA) + s;
-        i = Math.floor(i / len) - 1;
-    }
-    return s;
-}
 
-function mapIToNumbers(j) {
-    return j + 1;
-}
-
-function drawFieldMarks() {
-    for (let j = 0; j < boardWidth; j++) {
-        let cell = document.getElementById('tb0_' + j);
-        cell.dataset.number = mapJToLetters(j);
-    }
-}
 
 function placeFigure(i, j, className) {
     let tableCell = document.getElementById('tb' + i + '_' + j);
@@ -191,9 +169,9 @@ function makeShoot(i, j){
 function onCellClicked(i, j) {
     let tableCell = document.getElementById('tb' + i + '_' + j);
     let className = "";
-    if(tableCell.innerHTML != "") className = tableCell.childNodes[0].className;
+    if(tableCell.dataset.state != CellState.EMPTY) className = tableCell.childNodes[0].className;
 
-    if(tableCell.innerHTML != "" && currentTeam == getCurrentTeam(className) && tableCell.dataset.state != CellState.ARROW && isShoot == false && tableCell.dataset.state != CellState.CAPTURE){
+    if(tableCell.dataset.state != CellState.EMPTY && currentTeam == getCurrentTeam(className) && tableCell.dataset.state != CellState.ARROW && isShoot == false && tableCell.dataset.state != CellState.CAPTURE){
         isMove = true;
         currX = i;
         currY = j;
@@ -205,10 +183,10 @@ function onCellClicked(i, j) {
             else blackCaptured++;
         }
     }
-    if(tableCell.innerHTML == "" && isMove == true && isShoot == false && checkValidMovement(i, j)){
+    if(tableCell.dataset.state == CellState.EMPTY && isMove == true && isShoot == false && checkValidMovement(i, j)){
         replaceFigure(i, j);
     }
-    if(tableCell.innerHTML == "" && isShoot == true  && checkValidMovement(i, j)){
+    if(tableCell.dataset.state == CellState.EMPTY && isShoot == true  && checkValidMovement(i, j)){
         makeShoot(i, j);
     }
     isEnd();
@@ -308,7 +286,9 @@ function showPossibleFigureMoves() {
         for (let j = 0; j < boardWidth; j++) {
             let tableCell = document.getElementById('tb' + i + '_' + j);
             if(checkValidMovement(i, j) && tableCell.dataset.state != CellState.QUEEN && tableCell.dataset.state != CellState.ARROW){
-                tableCell.classList.add('possible-way');
+                let possibleWay = document.createElement('div');
+                possibleWay.className = 'possible-way'
+                tableCell.append(possibleWay);
                 currentPossibleWays++;
             }
         }
@@ -317,12 +297,16 @@ function showPossibleFigureMoves() {
 
 function stopShowPossibleFigureMoves() {
     currentPossibleWays = 0;
-    for (let i = 0; i < boardHeight; i++) {
+    let possibleWays = document.getElementsByClassName('possible-way');
+    while (possibleWays.length > 0) {
+        possibleWays[0].parentNode.removeChild(possibleWays[0]);
+    }
+    /*for (let i = 0; i < boardHeight; i++) {
         for (let j = 0; j < boardWidth; j++) {
             let tableCell = document.getElementById('tb' + i + '_' + j);
             tableCell.classList.remove('possible-way');
         }
-    }
+    }*/
 }
 
 function changeCurrentTeam() {

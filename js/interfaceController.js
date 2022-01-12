@@ -16,3 +16,31 @@ function aimateUIElements(stageFrom, stageTo) {
     appearElement.classList.remove('non-shown');
     appearElement.classList.add('item-appear');
 }
+
+function mapJToLetters(i) {
+    var ordA = 'A'.charCodeAt(0); // 65
+    var ordZ = 'Z'.charCodeAt(0); // 90
+    var len = ordZ - ordA + 1;
+  
+    var s = "";
+    while(i >= 0) {
+        s = String.fromCharCode(i % len + ordA) + s;
+        i = Math.floor(i / len) - 1;
+    }
+    return s;
+}
+
+function mapIToNumbers(j) {
+    return j + 1;
+}
+
+function drawFieldMarks(boardHeight, boardWidth) {
+    for (let j = 0; j < boardWidth; j++) {
+        let cell = document.getElementById('tb0_' + j);
+        cell.dataset.letter = mapJToLetters(j);
+    }
+    for (let i = 0; i < boardHeight; i++) {
+        let cell = document.getElementById('tb' + i + '_0');
+        cell.dataset.number = mapIToNumbers(i);
+    }
+}

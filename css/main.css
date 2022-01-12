@@ -212,14 +212,23 @@ html, body {
     position: relative;
 }
 
-.table-block::before {
-    content: attr(data-number);
-    right: 3px;
-    top: 3px;
+.table-block::before , .table-block::after {
     font-size: 14px;
     opacity: 0.6;
     color: #ffffff;
     position: absolute;
+}
+
+.table-block::before {
+    content: attr(data-letter);
+    right: 3px;
+    top: 3px;
+}
+
+.table-block::after {
+    content: attr(data-number);
+    left: 3px;
+    bottom: 3px;
 }
 
 .figure {
@@ -249,8 +258,7 @@ html, body {
     -moz-box-shadow: inset 0px 0px 24px 0px #40ff45d1;
 }
 
-.possible-way::after {
-    content: "";
+.possible-way {
     position: absolute;
     top: 8px;
     bottom: 8px;
