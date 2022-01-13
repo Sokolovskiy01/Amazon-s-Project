@@ -18,6 +18,7 @@ function aimateUIElements(stageFrom, stageTo) {
 }
 
 function mapJToLetters(i) {
+    i = parseInt(i);
     var ordA = 'A'.charCodeAt(0); // 65
     var ordZ = 'Z'.charCodeAt(0); // 90
     var len = ordZ - ordA + 1;
@@ -31,6 +32,7 @@ function mapJToLetters(i) {
 }
 
 function mapIToNumbers(j) {
+    j = parseInt(j);
     return j + 1;
 }
 
