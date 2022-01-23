@@ -8,7 +8,6 @@ const BLACK_LOG = '&#x265C;';
 
 const CellState = Object.freeze({ EMPTY: -1, ARROW: 1, QUEEN: 2 , CAPTURE: 3});
 const GameMode = Object.freeze({ PLAYER: 0, AI: 1});
-
 let selectedGameMode;
 
 const INVALID = 0;
@@ -27,6 +26,7 @@ let blackVictories;
 
 let isMove;
 let isShoot;
+let isBotMove;
 let currX;
 let currY;
 let currentTeam;
@@ -49,13 +49,22 @@ let boardHeight;
 let boardWidth;
 
 function selectGameMode(mode) {
-    selectGameMode = mode;
+    selectedGameMode = mode;
     setStage(UIStage.STAGE_PROPERTIES);
+}
+
+function getBoardHeight() {
+    return boardHeight;
+}
+
+function getBoardWidth() {
+    return boardWidth;
 }
 
 function startGame() {
     isMove = false;
     isShoot = false;
+    isBotMove = false;
     currentPossibleWays = 0;
     whiteCaptured = 0;
     blackCaptured = 0;
@@ -135,17 +144,17 @@ function placeFigure(i, j, className) {
     tableCell.dataset.state = CellState.QUEEN;
 }
 
-function replaceFigure(i, j) { 
+function replaceFigure(i, j, currX1, currY1) { 
     let tableCellTo = document.getElementById('tb' + i + '_' + j);
-    let tableCellFrom = document.getElementById('tb' + currX + '_' + currY);
-    if(isMove){
+    let tableCellFrom = document.getElementById('tb' + currX1 + '_' + currY1);
+    if(isMove || isBotMove){
         tableCellTo.innerHTML = tableCellFrom.innerHTML;
         tableCellTo.dataset.state = CellState.QUEEN;
         tableCellFrom.innerHTML = "";
         tableCellFrom.dataset.state = CellState.EMPTY;
         isMove = false;
         isShoot = true;
-        logMove(currX, currY, i, j);
+        logMove(currX1, currY1, i, j);
         currX = i;
         currY = j;
         highlightCurrentFigure();
@@ -183,53 +192,53 @@ function onCellClicked(i, j) {
             else blackCaptured++;
         }
     }
-    if(tableCell.dataset.state == CellState.EMPTY && isMove == true && isShoot == false && checkValidMovement(i, j)){
-        replaceFigure(i, j);
+    if(tableCell.dataset.state == CellState.EMPTY && isMove == true && isShoot == false && checkValidMovement(i, j, currX, currY)){
+        replaceFigure(i, j, currX, currY);
     }
-    if(tableCell.dataset.state == CellState.EMPTY && isShoot == true  && checkValidMovement(i, j)){
+    if(tableCell.dataset.state == CellState.EMPTY && isShoot == true  && checkValidMovement(i, j, currX, currY)){
         makeShoot(i, j);
     }
     isEnd();
 }
 
-function checkValidMovement(i, j){ 
-    if(isShoot == true || isMove == true) {
+function checkValidMovement(i, j, currX1, currY1){ 
+    if(isShoot == true || isMove == true || isBotMove == true) {
         //vertical/horizontal
-        if(currX == i || currY == j) {
-            if(currX == i){
-                getStartStopMovement(currY, j);
+        if(currX1 == i || currY1 == j) {
+            if(currX1 == i){
+                getStartStopMovement(currY1, j);
                 return validHorVerMovement(i, null);
-            }else{
-                getStartStopMovement(currX, i);
+            }else if(currY1 == j){
+                getStartStopMovement(currX1, i);
                 return validHorVerMovement(null, j);
             }
         }//cross up right
-        else if(currX > i && currY < j) {
-            return validCrossMovement(i, j, true, false, true);
+        else if(currX1 > i && currY1 < j) {
+            return validCrossMovement(i, j, true, false, true, currX1, currY1);
         //cross up left
-        }else if(currX > i && currY > j){
-            return validCrossMovement(i, j, true, false, false);
+        }else if(currX1 > i && currY1 > j){
+            return validCrossMovement(i, j, true, false, false, currX1, currY1);
         //cross down right    
-        }else if(currX < i && currY < j){
-            return validCrossMovement(i, j, false, true, true);
+        }else if(currX1 < i && currY1 < j){
+            return validCrossMovement(i, j, false, true, true, currX1, currY1);
         //cross down left
-        }else if(currX < i && currY > j) {
-            return validCrossMovement(i, j, false, true, false);
+        }else if(currX1 < i && currY1 > j) {
+            return validCrossMovement(i, j, false, true, false, currX1, currY1);
         }
     }
     return false;
 }
-function validCrossMovement(i, j, isBigger, opX, opY){
+function validCrossMovement(i, j, isBigger, opX, opY, currX1, currY1){
     var x;
-    if(isBigger) x = currX - i; //diff
-    else x = i - currX;
+    if(isBigger) x = currX1 - i; //diff
+    else x = i - currX1;
     
     for(let b = 1; b < x; b++){
         let tableCell;
-        if(!opX && opY) tableCell = document.getElementById('tb' + (currX-b) + '_' + (currY+b));
-        else if(!opX && !opY) tableCell = document.getElementById('tb' + (currX-b) + '_' + (currY-b));
-        else if(opX && opY) tableCell = document.getElementById('tb' + (currX+b) + '_' + (currY+b));
-        else if(opX && !opY) tableCell = document.getElementById('tb' + (currX+b) + '_' + (currY-b));
+        if(!opX && opY) tableCell = document.getElementById('tb' + (currX1-b) + '_' + (currY1+b));
+        else if(!opX && !opY) tableCell = document.getElementById('tb' + (currX1-b) + '_' + (currY1-b));
+        else if(opX && opY) tableCell = document.getElementById('tb' + (currX1+b) + '_' + (currY1+b));
+        else if(opX && !opY) tableCell = document.getElementById('tb' + (currX1+b) + '_' + (currY1-b));
         else return false;
 
         if(tableCell == null){
@@ -240,7 +249,7 @@ function validCrossMovement(i, j, isBigger, opX, opY){
             return false;
         }
     }
-    if(currY + x == j || currY - x == j) return true;
+    if(currY1 + x == j || currY1 - x == j) return true;
 }
 
 function validHorVerMovement(i , j){
@@ -285,7 +294,7 @@ function showPossibleFigureMoves() {
     for (let i = 0; i < boardHeight; i++) {
         for (let j = 0; j < boardWidth; j++) {
             let tableCell = document.getElementById('tb' + i + '_' + j);
-            if(checkValidMovement(i, j) && tableCell.dataset.state != CellState.QUEEN && tableCell.dataset.state != CellState.ARROW){
+            if(checkValidMovement(i, j, currX, currY) && tableCell.dataset.state != CellState.QUEEN && tableCell.dataset.state != CellState.ARROW){
                 let possibleWay = document.createElement('div');
                 possibleWay.className = 'possible-way'
                 tableCell.append(possibleWay);
@@ -301,12 +310,6 @@ function stopShowPossibleFigureMoves() {
     while (possibleWays.length > 0) {
         possibleWays[0].parentNode.removeChild(possibleWays[0]);
     }
-    /*for (let i = 0; i < boardHeight; i++) {
-        for (let j = 0; j < boardWidth; j++) {
-            let tableCell = document.getElementById('tb' + i + '_' + j);
-            tableCell.classList.remove('possible-way');
-        }
-    }*/
 }
 
 function changeCurrentTeam() {
@@ -315,6 +318,11 @@ function changeCurrentTeam() {
         gameTable.classList.remove('tabble-white-turn');
         gameTable.classList.add('table-black-turn');
         currentTeam = TEAMBLACK;
+        isBotMove = true;
+        if(selectedGameMode == GameMode.AI){
+            bot();
+        }
+        isBotMove = false;
     } else {
         currentTeamText.textContent = "White's turn";
         gameTable.classList.remove('table-black-turn');
