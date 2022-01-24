@@ -274,7 +274,7 @@ function checkFigureLoneliness(queenClassName, queenI, queenJ) {
     // to compare queen teams just compare their classList
     //let queenI = getQueenI(queen);
     //let queenJ = getQueenJ(queen);
-    let currentFieldMatrix = getFieldMatrix();
+    let currMatrix = getFieldMatrix();
     let visited = new Array(boardHeight);
     for (let k = 0; k < boardHeight; k++) {
         visited[k] = new Array(boardWidth);
@@ -296,76 +296,18 @@ function checkFigureLoneliness(queenClassName, queenI, queenJ) {
 
         queue.shift();
 
-        // up
-        if (isValidCoord(i - 1, j, boardHeight, boardWidth) && visited[i - 1][j] == false) {
-            if (currentFieldMatrix[i - 1][j].state == CellState.EMPTY) {
-                queue.push({ i: i - 1 , j: j });
-                visited[i - 1][j] = true;
+        for (let nI = i - 1; nI <= i + 1; nI++) {
+            for (let nJ = j - 1; nJ <= j + 1; nJ++) {
+                if (isValidCoord(nI, nJ, boardHeight, boardWidth) && visited[nI][nJ] == false) {
+                    if (currMatrix[nI][nJ].state == CellState.EMPTY) {
+                        queue.push({ i: nI , j: nJ });
+                        visited[nI][nJ] = true;
+                    }
+                    else if (currMatrix[nI][nJ].state == CellState.QUEEN && queenClassName != currMatrix[nI][nJ].queenTeam) {
+                        return false;
+                    }
+                }
             }
-            else if (currentFieldMatrix[i - 1][j].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i - 1][j].queenTeam) return false;
-        }
-
-        // up left
-        if (isValidCoord(i - 1, j - 1, boardHeight, boardWidth) && visited[i - 1][j - 1] == false) {
-            if (currentFieldMatrix[i - 1][j - 1].state == CellState.EMPTY) {
-                queue.push({ i: i - 1 , j: j - 1 });
-                visited[i - 1][j - 1] = true;
-            }
-            else if (currentFieldMatrix[i - 1][j - 1].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i - 1][j - 1].queenTeam) return false;
-        }
-
-        // up right
-        if (isValidCoord(i - 1, j + 1, boardHeight, boardWidth) && visited[i - 1][j + 1] == false) {
-            if (currentFieldMatrix[i - 1][j + 1].state == CellState.EMPTY) {
-                queue.push({ i: i - 1 , j: j + 1 });
-                visited[i - 1][ j + 1] = true;
-            }
-            else if (currentFieldMatrix[i - 1][j + 1].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i - 1][j + 1].queenTeam) return false;
-        }
-
-        // left
-        if (isValidCoord(i, j - 1, boardHeight, boardWidth) && visited[i][j - 1] == false) {
-            if (currentFieldMatrix[i][j - 1].state == CellState.EMPTY) {
-                queue.push({ i: i , j: j - 1 });
-                visited[i][ j - 1] = true;
-            }
-            else if (currentFieldMatrix[i][j - 1].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i][j - 1].queenTeam) return false;
-        }
-
-        // right
-        if (isValidCoord(i, j + 1, boardHeight, boardWidth) && visited[i][j + 1] == false) {
-            if (currentFieldMatrix[i][j + 1].state == CellState.EMPTY) {
-                queue.push({ i: i , j: j + 1 });
-                visited[i][ j + 1] = true;
-            }
-            else if (currentFieldMatrix[i][j + 1].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i][j + 1].queenTeam) return false;
-        }
-
-        // down
-        if (isValidCoord(i + 1, j, boardHeight, boardWidth) && visited[i + 1][j] == false) {
-            if (currentFieldMatrix[i + 1][j].state == CellState.EMPTY) {
-                queue.push({ i: i + 1 , j: j });
-                visited[i + 1][ j] = true;
-            }
-            else if (currentFieldMatrix[i + 1][j].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i + 1][j].queenTeam) return false;
-        }
-
-        // down left
-        if (isValidCoord(i + 1, j - 1, boardHeight, boardWidth) && visited[i + 1][j - 1] == false) {
-            if (currentFieldMatrix[i + 1][j - 1].state == CellState.EMPTY) {
-                queue.push({ i: i + 1 , j: j - 1 });
-                visited[i + 1][ j - 1] = true;
-            }
-            else if (currentFieldMatrix[i + 1][j - 1].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i + 1][j - 1].queenTeam) return false;
-        }
-
-        // down right
-        if (isValidCoord(i + 1, j + 1, boardHeight, boardWidth) && visited[i + 1][j + 1] == false) {
-            if (currentFieldMatrix[i + 1][j + 1].state == CellState.EMPTY) {
-                queue.push({ i: i + 1 , j: j + 1 });
-                visited[i + 1][ j + 1] = true;
-            }
-            else if (currentFieldMatrix[i + 1][j + 1].state == CellState.QUEEN && queenClassName != currentFieldMatrix[i + 1][j + 1].queenTeam) return false;
         }
 
     }
@@ -441,140 +383,24 @@ function calculateTeamPoints(currMatrix, queensArray) {
         
                 queue.shift();
 
-                // up
-                if (isValidCoord(i - 1, j, boardHeight, boardWidth) && visited[i - 1][j] == false) {
-                    if (currMatrix[i - 1][j].state == CellState.EMPTY) {
-                        queue.push({ i: i - 1 , j: j });
-                        visited[i - 1][j] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i - 1][j].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i - 1 && queensArray[it].queenJ == j) {
-                                queensArray.visited = true;
-                                break;
+                for (let nI = i - 1; nI <= i + 1; nI++) {
+                    for (let nJ = j - 1; nJ <= j + 1; nJ++) {
+                        if (isValidCoord(nI, nJ, boardHeight, boardWidth) && visited[nI][nJ] == false) {
+                            if (currMatrix[nI][nJ].state == CellState.EMPTY) {
+                                queue.push({ i: nI , j: nJ });
+                                visited[nI][nJ] = true;
+                                teamPoints++;
+                            }
+                            else if (currMatrix[nI][nJ].state == CellState.QUEEN) {
+                                for (let it = 0; it < queensArray.length; it++){
+                                    if (queensArray[it].queenI == nI && queensArray[it].queenJ == nJ) {
+                                        queensArray.visited = true;
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    };
-                }
-
-                //up left
-                if (isValidCoord(i - 1, j - 1, boardHeight, boardWidth) && visited[i - 1][j - 1] == false) {
-                    if (currMatrix[i - 1][j - 1].state == CellState.EMPTY) {
-                        queue.push({ i: i - 1 , j: j - 1 });
-                        visited[i - 1][j - 1] = true;
-                        teamPoints++;
                     }
-                    else if (currMatrix[i - 1][j - 1].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i - 1 && queensArray[it].queenJ == j - 1) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
-                }
-
-                //up right
-                if (isValidCoord(i - 1, j + 1, boardHeight, boardWidth) && visited[i - 1][j + 1] == false) {
-                    if (currMatrix[i - 1][j + 1].state == CellState.EMPTY) {
-                        queue.push({ i: i - 1 , j: j + 1 });
-                        visited[i - 1][j + 1] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i - 1][j + 1].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i - 1 && queensArray[it].queenJ == j + 1) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
-                }
-
-                // left
-                if (isValidCoord(i, j - 1, boardHeight, boardWidth) && visited[i][j - 1] == false) {
-                    if (currMatrix[i][j - 1].state == CellState.EMPTY) {
-                        queue.push({ i: i , j: j - 1 });
-                        visited[i][j - 1] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i][j - 1].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i && queensArray[it].queenJ == j - 1) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
-                }
-                
-                // right
-                if (isValidCoord(i, j + 1, boardHeight, boardWidth) && visited[i][j + 1] == false) {
-                    if (currMatrix[i][j + 1].state == CellState.EMPTY) {
-                        queue.push({ i: i , j: j + 1 });
-                        visited[i][j + 1] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i][j + 1].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i && queensArray[it].queenJ == j + 1) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
-                }
-
-                // down
-                if (isValidCoord(i + 1, j, boardHeight, boardWidth) && visited[i + 1][j] == false) {
-                    if (currMatrix[i + 1][j].state == CellState.EMPTY) {
-                        queue.push({ i: i + 1 , j: j });
-                        visited[i + 1][j] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i + 1][j].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i + 1 && queensArray[it].queenJ == j) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
-                }
-
-                // down left
-                if (isValidCoord(i + 1, j - 1, boardHeight, boardWidth) && visited[i + 1][j - 1] == false) {
-                    if (currMatrix[i + 1][j - 1].state == CellState.EMPTY) {
-                        queue.push({ i: i + 1 , j: j - 1 });
-                        visited[i + 1][j - 1] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i + 1][j - 1].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i + 1 && queensArray[it].queenJ == j - 1) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
-                }
-
-                // down right
-                if (isValidCoord(i + 1, j + 1, boardHeight, boardWidth) && visited[i + 1][j + 1] == false) {
-                    if (currMatrix[i + 1][j + 1].state == CellState.EMPTY) {
-                        queue.push({ i: i + 1 , j: j + 1 });
-                        visited[i + 1][j + 1] = true;
-                        teamPoints++;
-                    }
-                    else if (currMatrix[i + 1][j + 1].state == CellState.QUEEN) {
-                        for (let it = 0; it < queensArray.length; it++){
-                            if (queensArray[it].queenI == i + 1 && queensArray[it].queenJ == j + 1) {
-                                queensArray.visited = true;
-                                break;
-                            }
-                        }
-                    };
                 }
                 
             }
