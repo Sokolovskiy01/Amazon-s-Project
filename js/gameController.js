@@ -100,7 +100,11 @@ function startGame() {
     drawFieldMarks(boardHeight, boardWidth);
     setStage(UIStage.STAGE_GAME);
     console.log(getFieldMatrix());
-    console.log(isValidCoord(0, 8));
+}
+
+function restartGame() {
+    hideScoreBoard();
+    startGame();
 }
 
 function createField(width, height) {
@@ -183,7 +187,7 @@ function onCellClicked(i, j) {
         currY = j;
         highlightCurrentFigure();
         showPossibleFigureMoves();
-        if(isCapture()){
+        if(isCurrentCapture()){
             tableCell.dataset.state = CellState.CAPTURE;
             if (getCurrentTeam(className) == TEAMWHITE) whiteCaptured++;
             else blackCaptured++;
@@ -201,10 +205,10 @@ function checkValidMovement(i, j){
     if(isShoot == true || isMove == true) {
         //vertical/horizontal
         if(currX == i || currY == j) {
-            if(currX == i){
+            if(currX == i) {
                 getStartStopMovement(currY, j);
                 return validHorVerMovement(i, null);
-            }else{
+            } else if (currY == j) {
                 getStartStopMovement(currX, i);
                 return validHorVerMovement(null, j);
             }
@@ -239,8 +243,8 @@ function checkForSeparatedTeamsFigures() {
         let p = queens[l].parentElement;
         let queenI = getQueenI(p);
         let queenJ = getQueenJ(p);
-        console.log( 'Queen on position ' + mapJToLetters(queenJ) + mapIToNumbers(queenI) + ' is lonely: ' + checkFigureLoneliness(queens[l].className, queenI, queenJ));
-        if (checkFigureLoneliness(queens[l].className, queenI, queenJ)) finishGame = true;
+        //console.log( 'Queen on position ' + mapJToLetters(queenJ) + mapIToNumbers(queenI) + ' is lonely: ' + checkFigureLoneliness(queens[l].className, queenI, queenJ));
+        if (checkFigureLoneliness(queens[l].className, queenI, queenJ) || isQueenCaptured(queenI, queenJ)) finishGame = true;
         else return;
     }
     if (finishGame) {
@@ -359,6 +363,216 @@ function checkFigureLoneliness(queenClassName, queenI, queenJ) {
     return true;
 }
 
+function finishGameAndDisplayResults() {
+    gameFinished = true;
+    currentTeamText.textContent = "Game finished!";
+    gameLog.value += "Game finished!"
+    calculatePoints();
+}
+
+function calculatePoints() {
+    //let blackQueens = Array.from(document.getElementsByClassName(BLACK));
+    let visited = new Array(boardHeight);
+    let whiteQueens = [];
+    let blackQueens = [];
+    let currMatrix = getFieldMatrix();
+    for (let i = 0; i < currMatrix.length; i++) {
+        visited[i] = new Array(boardWidth);
+        for (let j = 0; j < currMatrix[i].length; j++) {
+            visited[i][j] = false;
+            if (currMatrix[i][j].state == CellState.QUEEN) {
+                if (currMatrix[i][j].queenTeam == WHITE) {
+                    whiteQueens.push({ queenI: i, queenJ: j, queenTeam: WHITE, visited: false });
+                }
+                else if (currMatrix[i][j].queenTeam == BLACK) {
+                    blackQueens.push({ queenI: i, queenJ: j, queenTeam: BLACK, visited: false });
+                }
+            }
+        }
+    }
+
+    //calculate white
+    let whitePoints = calculateTeamPoints(currMatrix, whiteQueens);
+    let blackPoints = calculateTeamPoints(currMatrix, blackQueens);
+
+    if (whitePoints > blackPoints) displayResults('White won!', whitePoints, blackPoints);
+    else if (blackPoints > whitePoints) displayResults('Black won!', whitePoints, blackPoints);
+    else displayResults('Draw!', whitePoints, blackPoints);
+
+    //console.log('Total points:')
+    //console.log('White: ' + whitePoints);
+    //console.log('Black: ' + blackPoints);
+    //currMatrix[i][j] = { state: CellState, queenTeam: null / WHITE / BLACK }
+}
+
+function calculateTeamPoints(currMatrix, queensArray) {
+    let teamPoints = 0;
+
+    let visited = new Array(currMatrix.length);
+    for (let i = 0; i < currMatrix.length; i++) {
+        visited[i] = new Array(boardWidth);
+        for (let j = 0; j < currMatrix[i].length; j++) {
+            visited[i][j] = false;
+        }
+    }
+
+    for (let q = 0; q < queensArray.length; q++) {
+        if (!isQueenCaptured(queensArray[q].queenI, queensArray[q].queenJ) && queensArray[q].visited != true) {
+            let queue = [];
+            queue.push({i: queensArray[q].queenI, j: queensArray[q].queenJ});
+            visited[queensArray[q].queenI][queensArray[q].queenJ] = true;
+            queensArray[q].visited = true;
+        
+            while (queue.length > 0) {
+        
+                let coord = queue[0];
+                let i = coord.i;
+                let j = coord.j;
+        
+                queue.shift();
+
+                // up
+                if (isValidCoord(i - 1, j, boardHeight, boardWidth) && visited[i - 1][j] == false) {
+                    if (currMatrix[i - 1][j].state == CellState.EMPTY) {
+                        queue.push({ i: i - 1 , j: j });
+                        visited[i - 1][j] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i - 1][j].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i - 1 && queensArray[it].queenJ == j) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+
+                //up left
+                if (isValidCoord(i - 1, j - 1, boardHeight, boardWidth) && visited[i - 1][j - 1] == false) {
+                    if (currMatrix[i - 1][j - 1].state == CellState.EMPTY) {
+                        queue.push({ i: i - 1 , j: j - 1 });
+                        visited[i - 1][j - 1] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i - 1][j - 1].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i - 1 && queensArray[it].queenJ == j - 1) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+
+                //up right
+                if (isValidCoord(i - 1, j + 1, boardHeight, boardWidth) && visited[i - 1][j + 1] == false) {
+                    if (currMatrix[i - 1][j + 1].state == CellState.EMPTY) {
+                        queue.push({ i: i - 1 , j: j + 1 });
+                        visited[i - 1][j + 1] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i - 1][j + 1].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i - 1 && queensArray[it].queenJ == j + 1) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+
+                // left
+                if (isValidCoord(i, j - 1, boardHeight, boardWidth) && visited[i][j - 1] == false) {
+                    if (currMatrix[i][j - 1].state == CellState.EMPTY) {
+                        queue.push({ i: i , j: j - 1 });
+                        visited[i][j - 1] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i][j - 1].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i && queensArray[it].queenJ == j - 1) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+                
+                // right
+                if (isValidCoord(i, j + 1, boardHeight, boardWidth) && visited[i][j + 1] == false) {
+                    if (currMatrix[i][j + 1].state == CellState.EMPTY) {
+                        queue.push({ i: i , j: j + 1 });
+                        visited[i][j + 1] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i][j + 1].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i && queensArray[it].queenJ == j + 1) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+
+                // down
+                if (isValidCoord(i + 1, j, boardHeight, boardWidth) && visited[i + 1][j] == false) {
+                    if (currMatrix[i + 1][j].state == CellState.EMPTY) {
+                        queue.push({ i: i + 1 , j: j });
+                        visited[i + 1][j] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i + 1][j].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i + 1 && queensArray[it].queenJ == j) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+
+                // down left
+                if (isValidCoord(i + 1, j - 1, boardHeight, boardWidth) && visited[i + 1][j - 1] == false) {
+                    if (currMatrix[i + 1][j - 1].state == CellState.EMPTY) {
+                        queue.push({ i: i + 1 , j: j - 1 });
+                        visited[i + 1][j - 1] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i + 1][j - 1].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i + 1 && queensArray[it].queenJ == j - 1) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+
+                // down right
+                if (isValidCoord(i + 1, j + 1, boardHeight, boardWidth) && visited[i + 1][j + 1] == false) {
+                    if (currMatrix[i + 1][j + 1].state == CellState.EMPTY) {
+                        queue.push({ i: i + 1 , j: j + 1 });
+                        visited[i + 1][j + 1] = true;
+                        teamPoints++;
+                    }
+                    else if (currMatrix[i + 1][j + 1].state == CellState.QUEEN) {
+                        for (let it = 0; it < queensArray.length; it++){
+                            if (queensArray[it].queenI == i + 1 && queensArray[it].queenJ == j + 1) {
+                                queensArray.visited = true;
+                                break;
+                            }
+                        }
+                    };
+                }
+                
+            }
+        }
+    }
+    return teamPoints;
+}
+
 function isValidCoord(i, j, height, width) {
     if (i < 0 || j < 0 ) return false;
     else if ( i >= height || j >= width) return false;
@@ -472,12 +686,6 @@ function getCurrentTeam(figure) {
     return null;
 }
 
-function finishGameAndDisplayResults() {
-    gameFinished = true;
-    currentTeamText.textContent = "Game finished!";
-    gameLog.value += "Game finished!"
-}
-
 function getQueenI(queen) {
     return parseInt(queen.id[2]);
 }
@@ -486,9 +694,21 @@ function getQueenJ(queen) {
     return parseInt(queen.id[4]);
 }
 
-function isCapture(){
+function isCurrentCapture(){
     if(currentPossibleWays == 0) return true;
     return false;
+}
+
+function isQueenCaptured(queenI, queenJ) {
+    let currMatrix = getFieldMatrix();
+    for (let i = queenI - 1; i <= queenI + 1; i++) {
+        for (let j = queenJ - 1; j <= queenJ + 1; j++) {
+            if (isValidCoord(i , j, boardHeight, boardWidth) && currMatrix[i][j].state == CellState.EMPTY) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 /**
@@ -518,10 +738,12 @@ function logMove(fromI, fromJ, toI, toJ) {
     tmp.innerHTML = symbol;
 
     gameLog.value += tmp.innerHTML + ': ' + '(' +  mapJToLetters(fromJ) + mapIToNumbers(fromI) + ')->(' + mapJToLetters(toJ) + mapIToNumbers(toI) + ')'; 
+    gameLog.scrollTop = gameLog.scrollHeight;
 }
 
 function logShot(i, j) {
     let tmp = document.createElement('span');
     tmp.innerHTML = "&#x1F525";
-    gameLog.value += '->' + tmp.innerHTML + '(' + mapJToLetters(j) + mapIToNumbers(i) + ')\n';
+    gameLog.value += tmp.innerHTML + '->' + '(' + mapJToLetters(j) + mapIToNumbers(i) + ')\n';
+    gameLog.scrollTop = gameLog.scrollHeight;
 }

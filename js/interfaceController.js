@@ -46,3 +46,24 @@ function drawFieldMarks(boardHeight, boardWidth) {
         cell.dataset.number = mapIToNumbers(i);
     }
 }
+
+function displayResults(teamName, whiteScore, blackScore) {
+    let resultBlock = document.getElementById('resultBlock');
+    let resultTeam = document.getElementById('resultTeam');
+    resultTeam.innerHTML = teamName;
+    let whitePoints = document.getElementById('whitePoints');
+    whitePoints.innerHTML = whiteScore;
+    let blackPoints = document.getElementById('blackPoints');
+    blackPoints.innerHTML = blackScore;
+    resultBlock.classList.remove('non-shown');
+}
+
+function hideScoreBoard() {
+    let resultBlock = document.getElementById('resultBlock');
+    resultBlock.classList.add('non-shown');
+}
+
+function goToMainMenu() {
+    hideScoreBoard();
+    setStage(UIStage.STAGE_PLAYERS);
+}
