@@ -18,6 +18,7 @@ function aimateUIElements(stageFrom, stageTo) {
 }
 
 function mapJToLetters(i) {
+    i = parseInt(i);
     var ordA = 'A'.charCodeAt(0); // 65
     var ordZ = 'Z'.charCodeAt(0); // 90
     var len = ordZ - ordA + 1;
@@ -31,6 +32,7 @@ function mapJToLetters(i) {
 }
 
 function mapIToNumbers(j) {
+    j = parseInt(j);
     return j + 1;
 }
 
@@ -43,4 +45,25 @@ function drawFieldMarks(boardHeight, boardWidth) {
         let cell = document.getElementById('tb' + i + '_0');
         cell.dataset.number = mapIToNumbers(i);
     }
+}
+
+function displayResults(teamName, whiteScore, blackScore) {
+    let resultBlock = document.getElementById('resultBlock');
+    let resultTeam = document.getElementById('resultTeam');
+    resultTeam.innerHTML = teamName;
+    let whitePoints = document.getElementById('whitePoints');
+    whitePoints.innerHTML = whiteScore;
+    let blackPoints = document.getElementById('blackPoints');
+    blackPoints.innerHTML = blackScore;
+    resultBlock.classList.remove('non-shown');
+}
+
+function hideScoreBoard() {
+    let resultBlock = document.getElementById('resultBlock');
+    resultBlock.classList.add('non-shown');
+}
+
+function goToMainMenu() {
+    hideScoreBoard();
+    setStage(UIStage.STAGE_PLAYERS);
 }
