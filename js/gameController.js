@@ -81,7 +81,7 @@ function startGame() {
     currentTeamText = document.getElementById("currentTeamText");
     currentTeamText.textContent = "White's turn";
     gameTable = document.getElementById("gameTable");
-    gameTable.classList.add('tabble-white-turn');
+    document.body.classList.add('table-white-turn');
     gameLog = document.getElementById('gameLog');
     gameLog.value = "";
     gameType = document.gameChoiceForm.gameMode.value;
@@ -566,16 +566,16 @@ function stopShowPossibleFigureMoves() {
 function changeCurrentTeam() {
     if (currentTeam == TEAMWHITE) {
         currentTeamText.textContent = "Black's turn";
-        gameTable.classList.remove('tabble-white-turn');
-        gameTable.classList.add('table-black-turn');
+        document.body.classList.remove('table-white-turn');
+        document.body.classList.add('table-black-turn');
         currentTeam = TEAMBLACK;
         isBotMove = true;
         if (selectedGameMode == GameMode.AI) bot();
         isBotMove = false;
     } else {
         currentTeamText.textContent = "White's turn";
-        gameTable.classList.remove('table-black-turn');
-        gameTable.classList.add('tabble-white-turn');
+        document.body.classList.remove('table-black-turn');
+        document.body.classList.add('table-white-turn');
         currentTeam = TEAMWHITE;
     }
 }
@@ -583,16 +583,16 @@ function changeCurrentTeam() {
 function setCurrentTeam(team) {
     if (team == TEAMBLACK) {
         currentTeamText.textContent = "Black's turn";
-        gameTable.classList.remove('tabble-white-turn');
-        gameTable.classList.add('table-black-turn');
+        document.body.classList.remove('table-white-turn');
+        document.body.classList.add('table-black-turn');
         currentTeam = TEAMBLACK;
         isBotMove = true;
         if (selectedGameMode == GameMode.AI) bot();
         isBotMove = false;
     } else {
         currentTeamText.textContent = "White's turn";
-        gameTable.classList.remove('table-black-turn');
-        gameTable.classList.add('tabble-white-turn');
+        document.body.classList.remove('table-black-turn');
+        document.body.classList.add('table-white-turn');
         currentTeam = TEAMWHITE;
     }
 }

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <title>Game of amazons</title>
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/animations.css">
         <script type="text/javascript" src="./js/gameController.js"></script>
@@ -10,7 +11,7 @@
     <body onload="setStage(UIStage.STAGE_PLAYERS)">
         <div class="main-game-page">
             <div class="game-column">
-                <h2 class="game-title">Amazon's game</h2>
+                <h2 class="game-title">GAME OF AMAZONS</h2>
                 <div class="main-selector non-shown" id="mainSelector" >
                     <h3 class="main-selector-title">Select game type</h3>
                     <button class="game-select-button button-neutral" id="button_choice_player" onclick="selectGameMode(GameMode.PLAYER)" >Player VS Player</button>
@@ -28,9 +29,11 @@
                     </form>
                 </div>
                 <div class="game-block non-shown" id="gameBlock">
-                    <h2 class="current-team-text" id="currentTeamText"></h2>
+                    <div class="current-team-text-container">
+                        <h2 class="current-team-text" id="currentTeamText"></h2>
+                    </div>
                     <div class="game-container " id="gameContainer">
-                        <div class="game-controls-container"  >
+                        <div class="game-controls-container" >
                             <div class="game-controls-buttons-container">
                                 <button class="game-controls-button button-red" style="margin: 0px 2px 0px 0px;" onclick="restartGame()" >Restart game</button>
                                 <button class="game-controls-button button-neutral" style="margin: 0px 0px 0px 2px;" onclick="cancelLastMove()">Cancel move</button>
@@ -48,7 +51,7 @@
                 </div>
                 <div class="result-block non-shown" id="resultBlock">
                     <div class="result-container">
-                        <h2 class="resultTeam" id="resultTeam">White</h2>
+                        <h2 class="resultTeam" id="resultTeam"></h2>
                         <div class="result-score-container">
                             <h3 class="score-value">White score: <span id="whitePoints"></span></h3>
                             <h3 class="score-value">Black score: <span id="blackPoints"></span></h3>
