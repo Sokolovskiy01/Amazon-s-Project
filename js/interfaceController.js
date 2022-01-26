@@ -12,9 +12,13 @@ function aimateUIElements(stageFrom, stageTo) {
     let appearElement = document.getElementById(stageTo);
     disappearElement.classList.remove('item-appear');
     disappearElement.classList.add('item-disappear');
-    appearElement.classList.remove('item-disappear');
-    appearElement.classList.remove('non-shown');
-    appearElement.classList.add('item-appear');
+    let timeout = 200;
+    if (stageFrom == stageTo) timeout = 0;
+    setTimeout(() => { // for smoother animation
+        appearElement.classList.remove('item-disappear');
+        appearElement.classList.remove('non-shown');
+        appearElement.classList.add('item-appear');
+    }, timeout);
 }
 
 function mapJToLetters(i) {
