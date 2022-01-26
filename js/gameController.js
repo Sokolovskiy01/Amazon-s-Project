@@ -49,6 +49,10 @@ let boardHeight;
 let boardWidth;
 let gameFinished;
 
+let boardSnapshots;
+let currentTurnNumber;
+let firstCancel;
+
 function selectGameMode(mode) {
     selectedGameMode = mode;
     setStage(UIStage.STAGE_PROPERTIES);
@@ -71,6 +75,9 @@ function startGame() {
     whiteCaptured = 0;
     blackCaptured = 0;
     currentTeam = TEAMWHITE;
+    boardSnapshots = [];
+    currentTurnNumber = 0;
+    firstCancel = true;
     currentTeamText = document.getElementById("currentTeamText");
     currentTeamText.textContent = "White's turn";
     gameTable = document.getElementById("gameTable");
@@ -108,7 +115,7 @@ function startGame() {
     }
     drawFieldMarks(boardHeight, boardWidth);
     setStage(UIStage.STAGE_GAME);
-    console.log(getFieldMatrix());
+    saveCurrentBoard();
 }
 
 function restartGame() {
@@ -182,6 +189,7 @@ function makeShoot(i, j){
     logShot(i, j);
     changeCurrentTeam();
     checkForSeparatedTeamsFigures();
+    saveCurrentBoard();
 }
 
 function onCellClicked(i, j) {
@@ -202,10 +210,10 @@ function onCellClicked(i, j) {
             else blackCaptured++;
         }
     }
-    if(tableCell.dataset.state == CellState.EMPTY && isMove == true && isShoot == false && checkValidMovement(i, j, currX, currY)){
+    if (tableCell.dataset.state == CellState.EMPTY && isMove == true && isShoot == false && checkValidMovement(i, j, currX, currY)) {
         replaceFigure(i, j, currX, currY);
     }
-    if(tableCell.dataset.state == CellState.EMPTY && isShoot == true  && checkValidMovement(i, j, currX, currY)){
+    if (tableCell.dataset.state == CellState.EMPTY && isShoot == true  && checkValidMovement(i, j, currX, currY)) {
         makeShoot(i, j);
     }
 }
@@ -247,13 +255,10 @@ function checkForSeparatedTeamsFigures() {
     let finishGame =  false;
     let queens = Array.from(document.getElementsByClassName(WHITE));
     Array.from(document.getElementsByClassName(BLACK)).forEach(elem => queens.push(elem));
-    //document.getElementsByClassName(BLACK).forEach((elem) => queens.push(elem));
     for (let l = 0; l < queens.length; l++) {
-        //console.log(queens[i]);
         let p = queens[l].parentElement;
         let queenI = getQueenI(p);
         let queenJ = getQueenJ(p);
-        //console.log( 'Queen on position ' + mapJToLetters(queenJ) + mapIToNumbers(queenI) + ' is lonely: ' + checkFigureLoneliness(queens[l].className, queenI, queenJ));
         if (checkFigureLoneliness(queens[l].className, queenI, queenJ) || isQueenCaptured(queenI, queenJ)) finishGame = true;
         else return;
     }
@@ -350,11 +355,6 @@ function calculatePoints() {
     if (whitePoints > blackPoints) displayResults('White won!', whitePoints, blackPoints);
     else if (blackPoints > whitePoints) displayResults('Black won!', whitePoints, blackPoints);
     else displayResults('Draw!', whitePoints, blackPoints);
-
-    //console.log('Total points:')
-    //console.log('White: ' + whitePoints);
-    //console.log('Black: ' + blackPoints);
-    //currMatrix[i][j] = { state: CellState, queenTeam: null / WHITE / BLACK }
 }
 
 function calculateTeamPoints(currMatrix, queensArray) {
@@ -407,6 +407,69 @@ function calculateTeamPoints(currMatrix, queensArray) {
         }
     }
     return teamPoints;
+}
+
+function cancelLastMove() {
+    isShoot = false;
+    isMove = false;
+    deHighlightFigure();
+    stopShowPossibleFigureMoves();
+    tmpLog = '';
+    clearLastLog();
+    console.log(boardSnapshots, currentTurnNumber - 1);
+    if (firstCancel) {
+        currentTurnNumber -= 2;
+        firstCancel = false;
+    } 
+    else currentTurnNumber -= 1;
+    let lastSnapshot = boardSnapshots[currentTurnNumber];
+    if (lastSnapshot == undefined) alert("No moves were done");
+    else {
+        reviveBoardFormMatrix(lastSnapshot.snapshot);
+        setCurrentTeam(lastSnapshot.teamTurn);
+    }
+}
+
+function reviveBoardFormMatrix(snapshot) {
+    for (let i = 0; i < boardHeight; i++) {
+        for (let j = 0; j < boardWidth; j++) {
+            let tableCell = document.getElementById('tb' + i + '_' + j);
+            if (parseInt(tableCell.dataset.state) != snapshot[i][j].state) {
+                tableCell.dataset.state = snapshot[i][j].state;
+                switch(snapshot[i][j].state) {
+                    case -1: { // Empty
+                        tableCell.innerHTML = '';
+                        break;
+                    }
+                    case 1: { // Arrow
+                        let arrowFigure = document.createElement('div');
+                        arrowFigure.className = 'figure figure-arrow';
+                        tableCell.append(arrowFigure);
+                        break;
+                    }
+                    case 2: { // Queen
+                        placeFigure(i, j, snapshot[i][j].queenTeam);
+                        break;
+                    }
+                    default: {
+                        alert("Error");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+function saveCurrentBoard() {
+    console.log(boardSnapshots, currentTurnNumber);
+    let moveObj = { snapshot: getFieldMatrix(), teamTurn: currentTeam}
+    if (!firstCancel) {
+        firstCancel = true;
+        currentTurnNumber += 1;
+    } 
+    boardSnapshots[currentTurnNumber] = moveObj;
+    currentTurnNumber += 1;
 }
 
 function isValidCoord(i, j, height, width) {
@@ -473,8 +536,10 @@ function highlightCurrentFigure() {
 }
 
 function deHighlightFigure() {
-    highlightedCell.classList.remove('block-highlight');
-    highlightedCell = undefined;
+    if (highlightedCell != undefined) {
+        highlightedCell.classList.remove('block-highlight');
+        highlightedCell = undefined;
+    }
 }
 
 function showPossibleFigureMoves() {
@@ -500,15 +565,30 @@ function stopShowPossibleFigureMoves() {
 }
 
 function changeCurrentTeam() {
-    if (currentTeam === TEAMWHITE) {
+    if (currentTeam == TEAMWHITE) {
         currentTeamText.textContent = "Black's turn";
         gameTable.classList.remove('tabble-white-turn');
         gameTable.classList.add('table-black-turn');
         currentTeam = TEAMBLACK;
         isBotMove = true;
-        if(selectedGameMode == GameMode.AI){
-            bot();
-        }
+        if (selectedGameMode == GameMode.AI) bot();
+        isBotMove = false;
+    } else {
+        currentTeamText.textContent = "White's turn";
+        gameTable.classList.remove('table-black-turn');
+        gameTable.classList.add('tabble-white-turn');
+        currentTeam = TEAMWHITE;
+    }
+}
+
+function setCurrentTeam(team) {
+    if (team == TEAMBLACK) {
+        currentTeamText.textContent = "Black's turn";
+        gameTable.classList.remove('tabble-white-turn');
+        gameTable.classList.add('table-black-turn');
+        currentTeam = TEAMBLACK;
+        isBotMove = true;
+        if (selectedGameMode == GameMode.AI) bot();
         isBotMove = false;
     } else {
         currentTeamText.textContent = "White's turn";
@@ -535,8 +615,8 @@ function getQueenJ(queen) {
     return parseInt(queen.id[4]);
 }
 
-function isCurrentCapture(){
-    if(currentPossibleWays == 0) return true;
+function isCurrentCapture() {
+    if (currentPossibleWays == 0) return true;
     return false;
 }
 
@@ -569,22 +649,24 @@ function getFieldMatrix() {
     return matrix;
 }
 
+let tmpLog = '';
+
 function logMove(fromI, fromJ, toI, toJ) {
     let symbol;
     if (currentTeam == TEAMWHITE) symbol = WHITE_LOG;
     else if (currentTeam == TEAMBLACK) symbol = BLACK_LOG;
 
-    // другого способа нету
     let tmp = document.createElement('span');
     tmp.innerHTML = symbol;
 
-    gameLog.value += tmp.innerHTML + ': ' + '(' +  mapJToLetters(fromJ) + mapIToNumbers(fromI) + ')->(' + mapJToLetters(toJ) + mapIToNumbers(toI) + ')'; 
     gameLog.scrollTop = gameLog.scrollHeight;
+    tmpLog = tmp.innerHTML + ': ' + '(' +  mapJToLetters(fromJ) + mapIToNumbers(fromI) + ')->(' + mapJToLetters(toJ) + mapIToNumbers(toI) + ')'; 
 }
 
 function logShot(i, j) {
     let tmp = document.createElement('span');
     tmp.innerHTML = "&#x1F525";
-    gameLog.value += tmp.innerHTML + '->' + '(' + mapJToLetters(j) + mapIToNumbers(i) + ')\n';
+    gameLog.value += tmpLog + tmp.innerHTML + '->' + '(' + mapJToLetters(j) + mapIToNumbers(i) + ')\n';
     gameLog.scrollTop = gameLog.scrollHeight;
+    tmpLog = '';
 }
