@@ -415,8 +415,7 @@ function cancelLastMove() {
     deHighlightFigure();
     stopShowPossibleFigureMoves();
     tmpLog = '';
-    clearLastLog();
-    console.log(boardSnapshots, currentTurnNumber - 1);
+    if (selectedGameMode == GameMode.AI) currentTurnNumber -= 1;
     if (firstCancel) {
         currentTurnNumber -= 2;
         firstCancel = false;
